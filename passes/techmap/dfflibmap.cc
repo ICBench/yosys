@@ -151,10 +151,7 @@ static void find_cell(LibertyAst *ast, IdString cell_type, bool clkpol, bool has
 
 		if (is_dft_ff(cell)) {
 			ff = cell->find("test_cell")->find("ff");
-			log_warning("cell %s is dft ff %s \n", cell->args[0].c_str(), ff->find("next_state")->value.c_str());
-		} else {
-			log_warning("cell %s is not dft ff %s \n", cell->args[0].c_str(), ff->find("next_state")->value.c_str());
-		}
+		} 
 
 		std::string cell_clk_pin, cell_rst_pin, cell_next_pin;
 		bool cell_clk_pol, cell_rst_pol, cell_next_pol;
@@ -269,10 +266,7 @@ static void find_cell_sr(LibertyAst *ast, IdString cell_type, bool clkpol, bool 
 
 		if (is_dft_ff(cell)) {
 			ff = cell->find("test_cell")->find("ff");
-			log_warning("cell %s is dft ff %s \n", cell->args[0].c_str(), ff->find("next_state")->value.c_str());
-		} else {
-			log_warning("cell %s is not dft ff %s \n", cell->args[0].c_str(), ff->find("next_state")->value.c_str());
-		}
+		} 
 
 		std::string cell_clk_pin, cell_set_pin, cell_clr_pin, cell_next_pin;
 		bool cell_clk_pol, cell_set_pol, cell_clr_pol, cell_next_pol;
