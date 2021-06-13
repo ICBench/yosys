@@ -217,8 +217,6 @@ static void find_cell(LibertyAst *ast, IdString cell_type, bool clkpol, bool has
 				this_cell_ports[pin->args[0]] = 0;
 		}
 
-		log_warning("cell %s type %s isdft %d found_output %d \n", cell->args[0].c_str(), cell_type.c_str(), is_dft_ff(cell), found_output);
-
 		if (!found_output || (best_cell != nullptr && (num_pins > best_cell_pins || (best_cell_noninv && !found_noninv_output))))
 			continue;
 
@@ -327,8 +325,6 @@ static void find_cell_sr(LibertyAst *ast, IdString cell_type, bool clkpol, bool 
 			if (this_cell_ports.count(pin->args[0]) == 0)
 				this_cell_ports[pin->args[0]] = 0;
 		}
-
-		log_warning("cell %s type %s isdft %d found_output %d \n", cell->args[0].c_str(), cell_type.c_str(), is_dft_ff(cell), found_output);
 
 		if (!found_output || (best_cell != nullptr && (num_pins > best_cell_pins || (best_cell_noninv && !found_noninv_output))))
 			continue;
