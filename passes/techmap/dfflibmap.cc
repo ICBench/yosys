@@ -87,6 +87,29 @@ static bool is_dft_ff(LibertyAst *cell)
 	return (attr != nullptr) && ((attr->find("ff")) != nullptr);
 }
 
+static bool parse_dft_scan_pin(LibertyAst *cell, std::string &pin_name, std::string pin_signal_type)
+{
+	if (cell == nullptr)
+		return false;
+
+	LibertyAst *test_cell = cell->find("test_cell");
+	if (test_cell == nullptr)
+		return false;
+
+	for (auto pin : test_cell->children) {
+		if (pin->id != "pin" || pin->args.size() != 1)
+			continue;
+		LibertyAst *signal_type = pin->find("signal_type");
+		if (signal_type == nullptr || signal_type->value != pin_signal_type)
+			continue;
+
+		pin_name = pin->args[0];
+		return true;
+	}
+
+	return false;
+}
+
 static bool parse_pin(LibertyAst *cell, LibertyAst *attr, std::string &pin_name, bool &pin_pol)
 {
 	if (cell == nullptr || attr == nullptr || attr->value.empty())
@@ -151,7 +174,7 @@ static void find_cell(LibertyAst *ast, IdString cell_type, bool clkpol, bool has
 
 		if (is_dft_ff(cell)) {
 			ff = cell->find("test_cell")->find("ff");
-		} 
+		}
 
 		std::string cell_clk_pin, cell_rst_pin, cell_next_pin;
 		bool cell_clk_pol, cell_rst_pol, cell_next_pol;
@@ -175,6 +198,16 @@ static void find_cell(LibertyAst *ast, IdString cell_type, bool clkpol, bool has
 			this_cell_ports[cell_rst_pin] = 'R';
 		this_cell_ports[cell_next_pin] = 'D';
 
+		if (is_dft_ff(cell)) {
+			std::string scan_enable_pin, scan_in_pin;
+			if (!parse_dft_scan_pin(cell, scan_enable_pin, "test_scan_enable"))
+				continue;
+			if (!parse_dft_scan_pin(cell, scan_in_pin, "test_scan_in"))
+				continue;
+			this_cell_ports[scan_enable_pin] = '0';
+			this_cell_ports[scan_in_pin] = '0';
+		}
+
 		double area = 0;
 		LibertyAst *ar = cell->find("area");
 		if (ar != nullptr && !ar->value.empty())
@@ -192,7 +225,7 @@ static void find_cell(LibertyAst *ast, IdString cell_type, bool clkpol, bool has
 				continue;
 			num_pins++;
 
-			if (dir->value == "input" && (this_cell_ports.count(pin->args[0]) == 0 && !is_dft_ff(cell)))
+			if (dir->value == "input" && this_cell_ports.count(pin->args[0]) == 0)
 				goto continue_cell_loop;
 
 			LibertyAst *func = pin->find("function");
@@ -264,7 +297,7 @@ static void find_cell_sr(LibertyAst *ast, IdString cell_type, bool clkpol, bool 
 
 		if (is_dft_ff(cell)) {
 			ff = cell->find("test_cell")->find("ff");
-		} 
+		}
 
 		std::string cell_clk_pin, cell_set_pin, cell_clr_pin, cell_next_pin;
 		bool cell_clk_pol, cell_set_pol, cell_clr_pol, cell_next_pol;
@@ -284,6 +317,16 @@ static void find_cell_sr(LibertyAst *ast, IdString cell_type, bool clkpol, bool 
 		this_cell_ports[cell_clr_pin] = 'R';
 		this_cell_ports[cell_next_pin] = 'D';
 
+		if (is_dft_ff(cell)) {
+			std::string scan_enable_pin, scan_in_pin;
+			if (!parse_dft_scan_pin(cell, scan_enable_pin, "test_scan_enable"))
+				continue;
+			if (!parse_dft_scan_pin(cell, scan_in_pin, "test_scan_in"))
+				continue;
+			this_cell_ports[scan_enable_pin] = '0';
+			this_cell_ports[scan_in_pin] = '0';
+		}
+
 		double area = 0;
 		LibertyAst *ar = cell->find("area");
 		if (ar != nullptr && !ar->value.empty())
@@ -301,7 +344,7 @@ static void find_cell_sr(LibertyAst *ast, IdString cell_type, bool clkpol, bool 
 				continue;
 			num_pins++;
 
-			if (dir->value == "input" && (this_cell_ports.count(pin->args[0]) == 0 && !is_dft_ff(cell)))
+			if (dir->value == "input" && this_cell_ports.count(pin->args[0]) == 0)
 				goto continue_cell_loop;
 
 			LibertyAst *func = pin->find("function");
