@@ -42,3 +42,4 @@ __pycache__
 /tests/unit/objtest/
 /tests/ystests
 /build
+.vscode
