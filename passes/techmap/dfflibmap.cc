@@ -22,8 +22,7 @@
 #include "libparse.h"
 
 #include <errno.h>
-#include <stack>
-#include <string.h>
+#include <string>
 
 USING_YOSYS_NAMESPACE
 PRIVATE_NAMESPACE_BEGIN
@@ -78,13 +77,16 @@ static void logmap_all()
 	logmap(ID($_DFFSR_PPP_));
 }
 
-static bool is_dft_ff(LibertyAst *cell)
+static LibertyAst *get_dft_ff(LibertyAst *cell)
 {
 	if (cell == nullptr) {
-		return false;
+		return nullptr;
 	}
 	LibertyAst *attr = cell->find("test_cell");
-	return (attr != nullptr) && ((attr->find("ff")) != nullptr);
+	if (attr == nullptr) {
+		return nullptr;
+	}
+	return attr->find("ff");
 }
 
 static bool parse_dft_scan_pin(LibertyAst *cell, std::string &pin_name, std::string pin_signal_type)
@@ -172,8 +174,9 @@ static void find_cell(LibertyAst *ast, IdString cell_type, bool clkpol, bool has
 		if (ff == nullptr)
 			continue;
 
-		if (is_dft_ff(cell)) {
-			ff = cell->find("test_cell")->find("ff");
+		LibertyAst *dft_ff = get_dft_ff(cell);
+		if (dft_ff != nullptr) {
+			ff = dft_ff;
 		}
 
 		std::string cell_clk_pin, cell_rst_pin, cell_next_pin;
@@ -198,7 +201,7 @@ static void find_cell(LibertyAst *ast, IdString cell_type, bool clkpol, bool has
 			this_cell_ports[cell_rst_pin] = 'R';
 		this_cell_ports[cell_next_pin] = 'D';
 
-		if (is_dft_ff(cell)) {
+		if (dft_ff != nullptr) {
 			std::string scan_enable_pin, scan_in_pin;
 			if (!parse_dft_scan_pin(cell, scan_enable_pin, "test_scan_enable"))
 				continue;
@@ -295,8 +298,9 @@ static void find_cell_sr(LibertyAst *ast, IdString cell_type, bool clkpol, bool 
 		if (ff == nullptr)
 			continue;
 
-		if (is_dft_ff(cell)) {
-			ff = cell->find("test_cell")->find("ff");
+		LibertyAst *dft_ff = get_dft_ff(cell);
+		if (dft_ff != nullptr) {
+			ff = dft_ff;
 		}
 
 		std::string cell_clk_pin, cell_set_pin, cell_clr_pin, cell_next_pin;
@@ -317,7 +321,7 @@ static void find_cell_sr(LibertyAst *ast, IdString cell_type, bool clkpol, bool 
 		this_cell_ports[cell_clr_pin] = 'R';
 		this_cell_ports[cell_next_pin] = 'D';
 
-		if (is_dft_ff(cell)) {
+		if (dft_ff != nullptr) {
 			std::string scan_enable_pin, scan_in_pin;
 			if (!parse_dft_scan_pin(cell, scan_enable_pin, "test_scan_enable"))
 				continue;
